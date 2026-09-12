@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>考研自习室 · 专注计时</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23FAF6EE'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23C8502F' stroke-width='9'/%3E%3Cline x1='50' y1='50' x2='50' y2='28' stroke='%232A2520' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#FAF6EE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="考研自习室">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23FAF6EE'/%3E%3Ccircle cx='50' cy='50' r='30' fill='none' stroke='%23C8502F' stroke-width='9'/%3E%3Cline x1='50' y1='50' x2='50' y2='28' stroke='%232A2520' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="manifest" href="./manifest.json">
+<style>
+:root {
+  --bg: #FAF6EE;
+  --paper: #FFFDF9;
+  --shell: #F4EDDF;
+  --ink: #2A2520;
+  --ink-2: #5C554B;
+  --muted: #9A8F7F;
+  --line: rgba(42,37,32,.09);
+  --accent: #C8502F;
+  --accent-deep: #A83F22;
+  --accent-soft: rgba(200,80,47,.12);
+  --ok: #4E7A55;
+  --warn: #B97F1F;
+  --serif: Georgia, "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  --sans: -apple-system, "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
+  --ease: cubic-bezier(.32,.72,0,1);
+  --spring: cubic-bezier(.34,1.3,.4,1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+button, .chip, .cell.day, .segbtn, .linkbtn, .entry .del {
+  -webkit-user-select: none; user-select: none;
+}
+html { scroll-behavior: smooth; touch-action: manipulation; }
+body {
+  font-family: var(--sans); color: var(--ink); min-height: 100vh;
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+    radial-gradient(900px 480px at 88% -8%, rgba(200,80,47,.05), transparent 62%),
+    radial-gradient(760px 520px at -10% 34%, rgba(120,90,50,.055), transparent 64%);
+  background-attachment: fixed;
+}
+.container { max-width: 480px; margin: 0 auto; padding: max(20px, env(safe-area-inset-top)) 18px calc(40px + env(safe-area-inset-bottom)); }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+.container > * { animation: rise .7s var(--ease) backwards; }
+.container > *:nth-child(2) { animation-delay: .07s; }
+.container > *:nth-child(3) { animation-delay: .14s; }
+.container > *:nth-child(4) { animation-delay: .21s; }
+.container > *:nth-child(5) { animation-delay: .28s; }
+.container > *:nth-child(6) { animation-delay: .35s; }
+
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 4px 2px 18px; }
+.eyebrow { font-size: 10px; letter-spacing: .3em; color: var(--muted); margin-bottom: 6px; }
+header h1 { font-family: var(--serif); font-size: 24px; font-weight: 700; letter-spacing: .06em; }
+.count-chip {
+  font-size: 12px; color: var(--ink-2); white-space: nowrap;
+  border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; background: var(--paper);
+  box-shadow: 0 2px 10px rgba(140,105,60,.07);
+}
+.count-chip b { font-family: var(--serif); font-size: 16px; color: var(--accent); margin: 0 2px; }
+
+.hero {
+  background: var(--shell); border: 1px solid var(--line); border-radius: 30px; padding: 9px;
+  box-shadow: 0 24px 54px rgba(140,105,60,.12);
+}
+.hero-inner {
+  position: relative;
+  background: var(--paper); border-radius: 22px; padding: 24px 18px 20px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+.qslip {
+  position: absolute; top: 16px; right: -10px; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  min-width: 40px; padding: 11px 7px 9px;
+  background: linear-gradient(180deg, #FDF9EE, #F5EBD7);
+  border: 1px solid rgba(42,37,32,.16); border-top: 4px solid var(--accent);
+  border-radius: 5px;
+  box-shadow: 2px 8px 18px rgba(120,85,45,.25);
+  transform: rotate(3deg);
+  cursor: pointer; -webkit-user-select: none; user-select: none;
+  animation: slipin .6s var(--spring) .45s backwards;
+  transition: box-shadow .3s var(--ease);
+}
+.qslip:active { box-shadow: 2px 5px 12px rgba(120,85,45,.3); }
+.qslip.draw { animation: slipdraw .55s var(--spring); }
+@keyframes slipin { from { transform: rotate(6deg) translateY(-36px); opacity: 0; } }
+@keyframes slipdraw { from { transform: rotate(6deg) translateY(-36px); opacity: 0; } }
+.q-no { font-size: 9px; color: var(--muted); letter-spacing: .18em; }
+.q-txt {
+  writing-mode: vertical-rl; text-orientation: upright;
+  font-family: var(--serif); font-size: 12px; font-weight: 600; color: var(--ink);
+  letter-spacing: .22em; line-height: 1.5; max-height: 120px;
+}
+.q-seal {
+  writing-mode: vertical-rl; text-orientation: upright;
+  font-family: var(--serif); font-size: 9px; letter-spacing: .12em;
+  background: var(--accent); color: #FFF6EE; padding: 6px 3px; border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(200,80,47,.35);
+}
+.ring-wrap { position: relative; width: 212px; height: 212px; margin: 0 auto; }
+.ring-wrap svg { width: 100%; height: 100%; display: block; }
+.ring-bg { fill: none; stroke: rgba(42,37,32,.08); stroke-width: 11; }
+.ring-fg {
+  fill: none; stroke: var(--accent); stroke-width: 11; stroke-linecap: round;
+  stroke-dasharray: 540.4; stroke-dashoffset: 540.4;
+  transform: rotate(-90deg); transform-origin: 100px 100px;
+  transition: stroke-dashoffset .5s var(--ease), stroke .3s;
+}
+.ring-wrap.done .ring-fg { stroke: var(--ok); }
+.ring-wrap.paused .ring-fg { stroke: var(--warn); }
+.ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 34px; }
+.rc-top { font-size: 12px; color: var(--muted); letter-spacing: .18em; }
+.rc-main { font-family: var(--serif); font-size: 44px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
+.rc-main.digits { font-family: var(--sans); font-weight: 600; font-size: 34px; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+.rc-sub { font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+.chips { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 20px 0 16px; }
+.chip {
+  font-family: var(--sans); font-size: 14px; color: var(--ink-2);
+  background: transparent; border: 1px solid var(--line); border-radius: 999px;
+  padding: 9px 18px; cursor: pointer; transition: all .25s var(--ease);
+}
+.chip:hover { border-color: rgba(42,37,32,.25); }
+.chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip:disabled { opacity: .4; cursor: not-allowed; }
+.btn-row { display: flex; gap: 10px; }
+.btn {
+  font-family: var(--sans); font-size: 16px; font-weight: 600; letter-spacing: .12em;
+  border-radius: 999px; padding: 15px 20px; cursor: pointer; border: 1px solid transparent;
+  transition: transform .18s var(--ease), box-shadow .25s var(--ease), opacity .2s;
+}
+.btn:active { transform: scale(.975); }
+.btn:disabled { opacity: .35; cursor: not-allowed; }
+.btn-ink { background: var(--ink); color: var(--bg); flex: 1; box-shadow: 0 12px 26px rgba(42,37,32,.22); }
+.btn-ink:hover { box-shadow: 0 14px 30px rgba(42,37,32,.3); }
+.btn-ghost { background: transparent; color: var(--ink-2); border-color: var(--line); }
+.btn-ghost:hover { border-color: rgba(42,37,32,.3); }
+.btn-accent { background: var(--accent); color: #FFF8F2; flex: 1; box-shadow: 0 12px 26px rgba(200,80,47,.28); }
+.btn-accent:hover { background: var(--accent-deep); }
+.btn-text { background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: .05em; padding: 12px 8px; flex: none; }
+.btn-text:hover { color: var(--accent); }
+.chip:active { transform: scale(.92); }
+.segbtn:active { transform: scale(.94); }
+.linkbtn:active { transform: scale(.96); }
+#idleRow, #runRow { animation: rise .4s var(--ease); }
+.entry { animation: rise .45s var(--ease) backwards; }
+.ring-center.swap { animation: centerswap .45s var(--ease); }
+@keyframes centerswap { from { opacity: .25; transform: scale(.96); } }
+.card { transition: transform .3s var(--ease), box-shadow .3s var(--ease); }
+.card:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(140,105,60,.13); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+#runRow { display: none; }
+.flash { opacity: 0; transition: opacity .35s; text-align: center; font-size: 12px; color: var(--ink-2); min-height: 18px; margin-top: 10px; }
+.flash.on { opacity: 1; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.strip {
+  margin-top: 14px; background: var(--paper); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px 6px;
+  display: grid; grid-template-columns: repeat(4, 1fr); text-align: center;
+  box-shadow: 0 10px 30px rgba(140,105,60,.08);
+}
+.strip > div { border-left: 1px solid var(--line); padding: 2px 4px; }
+.strip > div:first-child { border-left: none; }
+.strip b { display: block; font-family: var(--serif); font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.strip span { font-size: 10px; color: var(--muted); letter-spacing: .22em; }
+
+.card {
+  margin-top: 14px; background: var(--paper); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px 16px;
+  box-shadow: 0 10px 30px rgba(140,105,60,.08);
+}
+.card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.card-head h2 { font-family: var(--serif); font-size: 18px; font-weight: 700; letter-spacing: .04em; }
+.navbtns { display: flex; gap: 6px; }
+button.nav {
+  width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--ink-2); font-size: 15px; cursor: pointer; transition: all .2s var(--ease);
+}
+button.nav:hover { border-color: rgba(42,37,32,.3); }
+button.nav:active { transform: scale(.92); }
+button.nav.wide { width: auto; padding: 0 12px; font-size: 12px; letter-spacing: .1em; }
+.weekrow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+.weekrow div { text-align: center; font-size: 10px; color: var(--muted); letter-spacing: .1em; padding: 4px 0; }
+.calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cell {
+  min-height: 46px; border-radius: 12px; padding: 6px 2px 4px;
+  text-align: center; border: 1px solid transparent;
+}
+.cell.blank { visibility: hidden; }
+.cell.day { cursor: pointer; transition: background .2s var(--ease), transform .15s var(--ease); }
+.cell.day:hover { background: rgba(42,37,32,.045); }
+.cell.day:active { transform: scale(.94); }
+.dnum { font-size: 14px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.cell.today { border-color: var(--ink); }
+.cell.today .dnum { color: var(--ink); font-weight: 700; }
+.dhrs { font-size: 9px; color: var(--accent-deep); font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 12px; letter-spacing: .05em; }
+
+.seg { display: flex; gap: 3px; background: var(--shell); border-radius: 999px; padding: 3px; }
+.segbtn {
+  background: transparent; border: none; border-radius: 999px; padding: 7px 13px;
+  font-size: 12px; color: var(--ink-2); cursor: pointer; transition: all .25s var(--ease); white-space: nowrap;
+}
+.segbtn.active { background: var(--paper); color: var(--ink); font-weight: 600; box-shadow: 0 2px 8px rgba(140,105,60,.15); }
+.chart { display: flex; align-items: flex-end; gap: 5px; padding-top: 14px; }
+.chart.dense { gap: 3px; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.bar-zone { width: 100%; height: 150px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+.bar-val { font-size: 9px; color: var(--ink-2); font-weight: 600; margin-bottom: 3px; height: 12px; font-variant-numeric: tabular-nums; }
+.bar {
+  width: 100%; max-width: 30px; border-radius: 7px 7px 3px 3px; cursor: pointer;
+  background: linear-gradient(180deg, #D8643F, var(--accent));
+  max-height: calc(100% - 15px); transition: height .45s var(--ease), filter .15s;
+}
+.bar:hover { filter: brightness(1.08); }
+.bar.zero { background: rgba(42,37,32,.07); }
+.bar.bar-today { box-shadow: 0 0 0 2px var(--accent-soft); }
+.bar-label { margin-top: 6px; font-size: 9px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chart-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+.chart-total { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+.chart-total b { font-family: var(--serif); font-size: 17px; color: var(--ink); }
+.chart-hint { font-size: 11px; color: var(--muted); text-align: right; }
+.subj-share { margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 14px; }
+.subj-share h4 { font-size: 11px; color: var(--muted); letter-spacing: .2em; margin-bottom: 12px; font-weight: 500; }
+.srow { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
+.srow:last-child { margin-bottom: 0; }
+.sname { width: 54px; font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.strack { flex: 1; height: 10px; background: rgba(42,37,32,.06); border-radius: 99px; overflow: hidden; }
+.sfill { display: block; height: 100%; border-radius: 99px; width: 0; transition: width .55s var(--ease); }
+.sval { width: 66px; text-align: right; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sempty { font-size: 12px; color: var(--muted); text-align: center; padding: 4px 0; }
+
+.rows { display: grid; gap: 2px; }
+.row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 2px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink-2);
+}
+.rows .row:last-child { border-bottom: none; }
+.row label { letter-spacing: .05em; }
+.row .end { display: flex; align-items: center; gap: 6px; color: var(--ink); }
+.row input {
+  font-family: var(--sans); font-size: 14px; color: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; background: var(--bg);
+}
+.row input:focus { border-color: var(--accent); outline: none; }
+.links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.linkbtn {
+  font-size: 12px; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 999px; padding: 8px 14px; cursor: pointer; transition: all .2s var(--ease);
+}
+.linkbtn:hover { color: var(--accent-deep); border-color: rgba(200,80,47,.4); }
+.linkbtn.danger:hover { color: #B03024; border-color: rgba(176,48,36,.4); }
+
+.overlay {
+  position: fixed; inset: 0; background: rgba(42,37,32,.4); z-index: 50;
+  display: none; align-items: center; justify-content: center;
+}
+.overlay.show { display: flex; animation: fadein .25s var(--ease); }
+@keyframes fadein { from { opacity: 0; } }
+.panel {
+  background: var(--paper); border-radius: 24px; width: min(500px, calc(100% - 32px));
+  max-height: 86vh; overflow: auto; padding: 20px 20px 24px; margin: 16px;
+  box-shadow: 0 30px 80px rgba(42,37,32,.35);
+  animation: sheetup .5s var(--spring);
+}
+@keyframes sheetup { from { opacity: 0; transform: translateY(26px) scale(.98); } }
+.sheet-handle { display: none; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.panel-head h3 { font-family: var(--serif); font-size: 18px; letter-spacing: .03em; }
+.closex { background: transparent; border: none; font-size: 17px; color: var(--muted); padding: 4px 8px; cursor: pointer; border-radius: 8px; }
+.closex:hover { color: var(--ink); background: rgba(42,37,32,.06); }
+.modal-total { font-size: 12px; color: var(--muted); margin-bottom: 12px; letter-spacing: .04em; }
+.modal-total b { font-family: var(--serif); color: var(--accent-deep); font-size: 15px; }
+.entry {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 14px;
+  padding: 10px 13px; margin-bottom: 8px; font-size: 14px;
+}
+.subjtag { background: var(--shell); color: var(--ink-2); border-radius: 8px; padding: 3px 10px; font-size: 12px; }
+.eh { font-family: var(--serif); font-weight: 700; color: var(--accent-deep); font-variant-numeric: tabular-nums; }
+.note { color: var(--muted); font-size: 12px; flex: 1; min-width: 80px; }
+.del { background: transparent; border: none; color: var(--muted); font-size: 12px; padding: 4px 8px; cursor: pointer; border-radius: 8px; }
+.del:hover { color: #B03024; background: rgba(176,48,36,.08); }
+.empty { text-align: center; color: var(--muted); font-size: 13px; padding: 20px 0; }
+.addform { display: grid; grid-template-columns: 1fr 88px auto; gap: 8px; margin-top: 16px; }
+.addform input {
+  font-family: var(--sans); font-size: 14px; color: var(--ink);
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg);
+}
+.addform input:focus { border-color: var(--accent); outline: none; }
+.addform .note-in { grid-column: 1 / 3; }
+.addbtn { background: var(--ink); color: var(--bg); border: none; border-radius: 12px; padding: 10px 16px; font-size: 14px; cursor: pointer; }
+.addbtn:active { transform: scale(.97); }
+.err { color: #B03024; font-size: 12px; margin-top: 6px; display: none; }
+.rep-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+.rep-item { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 12px; }
+.rep-item b { display: block; font-family: var(--serif); font-size: 23px; margin-bottom: 3px; font-variant-numeric: tabular-nums; }
+.rep-item span { font-size: 12px; color: var(--muted); letter-spacing: .03em; }
+.rep-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; letter-spacing: .04em; }
+
+.minibar {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom)); width: min(440px, calc(100% - 24px));
+  z-index: 40; display: none; align-items: center; gap: 10px;
+  background: var(--ink); color: var(--bg); border-radius: 999px; padding: 10px 12px 10px 18px;
+  box-shadow: 0 18px 44px rgba(42,37,32,.4);
+}
+.minibar.show { display: flex; animation: mbup .55s var(--spring); }
+.mb-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex: none; }
+.minibar.running .mb-dot { animation: mbpulse 1.6s infinite; }
+.minibar.paused .mb-dot { background: var(--warn); }
+@keyframes mbpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(200,80,47,.5); } 50% { box-shadow: 0 0 0 6px rgba(200,80,47,0); } }
+@keyframes mbup { from { transform: translate(-50%, 80px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+.mb-subj { font-size: 13px; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 74px; }
+.mb-time { font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; flex: 1; }
+.mb-btns { display: flex; gap: 6px; flex: none; }
+.mb-btns button { border-radius: 999px; padding: 9px 14px; font-size: 13px; cursor: pointer; border: 1px solid transparent; transition: transform .15s var(--ease); }
+.mb-btns button:active { transform: scale(.95); }
+.mb-ghost { background: rgba(255,255,255,.12); color: var(--bg); }
+.mb-main { background: var(--bg); color: var(--ink); font-weight: 600; }
+.mb-text { background: transparent; color: rgba(255,255,255,.55); }
+body.timer-live .container { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+
+@media (max-width: 560px) {
+  .overlay { align-items: flex-end; }
+  .panel {
+    width: 100%; margin: 0; border-radius: 24px 24px 0 0; max-height: 90dvh;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+  .sheet-handle { display: block; width: 40px; height: 5px; border-radius: 99px; background: rgba(42,37,32,.2); margin: 0 auto 14px; }
+  .chart-hint { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <p class="eyebrow">KAOYAN · FOCUS</p>
+      <h1>考研自习室</h1>
+    </div>
+    <div class="count-chip">距初试 <b id="daysLeft">--</b> 天</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="ring-wrap" id="ringWrap">
+        <svg viewBox="0 0 200 200">
+          <circle class="ring-bg" cx="100" cy="100" r="86"></circle>
+          <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="86"></circle>
+        </svg>
+        <div class="ring-center">
+          <div class="rc-top" id="rcTop">今日专注</div>
+          <div class="rc-main" id="rcMain">0h</div>
+          <div class="rc-sub" id="rcSub"></div>
+        </div>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip" data-subj="政治">政治</button>
+        <button class="chip active" data-subj="数学">数学</button>
+        <button class="chip" data-subj="英语">英语</button>
+        <button class="chip" data-subj="专业课">专业课</button>
+        <button class="chip" data-subj="其他">其他</button>
+      </div>
+      <div class="btn-row" id="idleRow">
+        <button class="btn btn-ink" id="btnStart">开始专注</button>
+      </div>
+      <div class="btn-row" id="runRow">
+        <button class="btn btn-ghost" id="btnPause" style="flex:none">暂停</button>
+        <button class="btn btn-accent" id="btnStop">结束并记录</button>
+        <button class="btn btn-text" id="btnDiscard">放弃</button>
+      </div>
+      <p class="flash" id="flash"></p>
+      <div class="qslip" id="qslip" title="点一下再抽一支">
+        <span class="q-no" id="qNo"></span>
+        <span class="q-txt" id="qTxt"></span>
+        <span class="q-seal" id="qSeal"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip">
+    <div><b id="stToday">0h</b><span>今日</span></div>
+    <div><b id="stWeek">0h</b><span>本周</span></div>
+    <div><b id="stAll">0h</b><span>累计</span></div>
+    <div><b id="stStreak">0</b><span>连续</span></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 id="calTitle">--</h2>
+      <div class="navbtns">
+        <button class="nav" id="prevBtn">‹</button>
+        <button class="nav wide" id="nowBtn">今</button>
+        <button class="nav" id="nextBtn">›</button>
+      </div>
+    </div>
+    <div class="weekrow"><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div></div>
+    <div class="calgrid" id="calGrid"></div>
+    <p class="hint">点击日期查看或补记 · 颜色越深，学得越久</p>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>数据一览</h2>
+      <div class="seg">
+        <button class="segbtn active" data-range="7">近7日</button>
+        <button class="segbtn" data-range="30">近一个月</button>
+        <button class="segbtn" data-range="12">近12个月</button>
+      </div>
+    </div>
+    <div class="chart" id="chartArea"></div>
+    <div class="chart-foot">
+      <div class="chart-total">合计 <b id="chartTotal">0</b> 小时</div>
+      <div class="chart-hint" id="chartHint"></div>
+    </div>
+    <div class="subj-share">
+      <h4>科目占比 · <span id="shareRangeLabel">近 7 日</span></h4>
+      <div id="shareList"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="rows">
+      <div class="row"><label>考试日期</label><input type="date" id="examInput"></div>
+      <div class="row"><label>每日目标</label><span class="end"><input type="number" id="goalInput" min="1" max="24" step="0.5" style="width:70px">小时</span></div>
+    </div>
+    <div class="links">
+      <button class="linkbtn" id="reportBtn">本周报告</button>
+      <button class="linkbtn" id="exportBtn">导出数据</button>
+      <button class="linkbtn" id="importBtn">导入数据</button>
+      <button class="linkbtn danger" id="clearBtn">清空全部</button>
+      <input type="file" id="importInput" accept=".json" style="display:none">
+    </div>
+  </section>
+</div>
+
+<div class="minibar" id="minibar">
+  <span class="mb-dot"></span>
+  <span class="mb-subj" id="mbSubj">--</span>
+  <b class="mb-time" id="mbTime">0:00:00</b>
+  <div class="mb-btns">
+    <button class="mb-ghost" id="mbPause">暂停</button>
+    <button class="mb-main" id="mbStop">✔ 记录</button>
+    <button class="mb-text" id="mbDiscard">放弃</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="panel" id="dayPanel">
+    <div class="sheet-handle"></div>
+    <div class="panel-head">
+      <h3 id="modalDate">--</h3>
+      <button class="closex" id="closeBtn">✕</button>
+    </div>
+    <div class="modal-total">当日合计 <b id="modalTotal">0</b> 小时</div>
+    <div id="entryList"></div>
+    <div class="addform">
+      <input id="subjInput" list="subjList" placeholder="科目">
+      <input id="hoursInput" type="number" step="any" min="0" placeholder="小时">
+      <button class="addbtn" id="addBtn">添加</button>
+      <input id="noteInput" class="note-in" placeholder="备注（可选）">
+    </div>
+    <datalist id="subjList">
+      <option value="政治"></option><option value="英语"></option>
+      <option value="数学"></option><option value="专业课"></option><option value="其他"></option>
+    </datalist>
+    <div class="err" id="addErr"></div>
+  </div>
+</div>
+
+<div class="overlay" id="reportOverlay">
+  <div class="panel" id="reportPanel">
+    <div class="sheet-handle"></div>
+    <div class="panel-head">
+      <h3 id="reportTitle">本周学习报告</h3>
+      <button class="closex" id="reportClose">✕</button>
+    </div>
+    <div id="reportBody"></div>
+  </div>
+</div>
+
+<script>
+const LS_R = 'ky_records_v1', LS_S = 'ky_settings_v1';
+let records = {}, settings = { examDate: '2027-12-25', dailyGoal: 8 };
+try { records = JSON.parse(localStorage.getItem(LS_R)) || {}; } catch (e) {}
+try { Object.assign(settings, JSON.parse(localStorage.getItem(LS_S)) || {}); } catch (e) {}
+if (settings.examDate === '2026-12-26') settings.examDate = '2027-12-25';
+
+function save() {
+  localStorage.setItem(LS_R, JSON.stringify(records));
+  localStorage.setItem(LS_S, JSON.stringify(settings));
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+function fmt(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function today() { return fmt(new Date()); }
+function parseKey(k) { const a = k.split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]); }
+function total(k) { return (records[k] || []).reduce((s, e) => s + (Number(e.hours) || 0), 0); }
+function fmtH(h) {
+  h = Math.round(h * 100) / 100;
+  return h % 1 === 0 ? String(h) : String(h).replace(/0$/, '');
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+const now0 = new Date();
+let view = { y: now0.getFullYear(), m: now0.getMonth() };
+let sel = null;
+
+function renderCalendar() {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const startCol = (new Date(view.y, view.m, 1).getDay() + 6) % 7;
+  const dim = new Date(view.y, view.m + 1, 0).getDate();
+  const rows = Math.ceil((startCol + dim) / 7);
+  const t = today();
+  for (let i = 0; i < rows * 7; i++) {
+    const dayNum = i - startCol + 1;
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    if (dayNum >= 1 && dayNum <= dim) {
+      const key = fmt(new Date(view.y, view.m, dayNum));
+      const hrs = total(key);
+      cell.classList.add('day');
+      if (key === t) cell.classList.add('today');
+      const a = settings.dailyGoal > 0 ? Math.min(hrs / settings.dailyGoal, 1) : 0;
+      if (hrs > 0) cell.style.background = 'rgba(200,80,47,' + (0.1 + a * 0.5).toFixed(2) + ')';
+      cell.innerHTML = '<div class="dnum">' + dayNum + '</div>' + (hrs > 0 ? '<div class="dhrs">' + fmtH(hrs) + 'h</div>' : '');
+      cell.onclick = () => openModal(key);
+    } else {
+      cell.classList.add('blank');
+    }
+    grid.appendChild(cell);
+  }
+  document.getElementById('calTitle').textContent = view.y + '年' + (view.m + 1) + '月';
+}
+
+function calcStreak() {
+  const d = new Date();
+  if (total(fmt(d)) === 0) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (total(fmt(d)) > 0) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
+function weekTotal() {
+  const n = new Date();
+  const dow = (n.getDay() + 6) % 7;
+  let s = 0;
+  for (let i = 0; i <= dow; i++) {
+    const d = new Date(n); d.setDate(n.getDate() - i);
+    s += total(fmt(d));
+  }
+  return s;
+}
+
+const RING_C = 540.4;
+function renderRing() {
+  const goal = settings.dailyGoal > 0 ? settings.dailyGoal : 8;
+  const tp = total(today());
+  const runSec = timer.state === 'idle' ? 0 : Math.floor(elapsedMs() / 1000);
+  const shown = tp + runSec / 3600;
+  const frac = Math.min(shown / goal, 1);
+  document.getElementById('ringFg').style.strokeDashoffset = (RING_C * (1 - frac)).toFixed(1);
+  const top = document.getElementById('rcTop');
+  const main = document.getElementById('rcMain');
+  const sub = document.getElementById('rcSub');
+  const wrap = document.getElementById('ringWrap');
+  if (timer.state === 'idle') {
+    top.textContent = '今日专注';
+    main.textContent = fmtH(tp) + 'h';
+    main.classList.remove('digits');
+    sub.textContent = tp >= goal ? '已达标 · 干得漂亮' : '目标 ' + fmtH(goal) + 'h';
+    wrap.classList.toggle('done', tp >= goal);
+    wrap.classList.remove('paused');
+  } else {
+    top.textContent = timer.subject || '学习';
+    main.textContent = hms(runSec);
+    main.classList.add('digits');
+    sub.textContent = timer.state === 'paused' ? '已暂停' : '专注中 · ' + fmtH(shown) + '/' + fmtH(goal) + 'h';
+    wrap.classList.toggle('paused', timer.state === 'paused');
+    wrap.classList.remove('done');
+  }
+}
+
+function renderStats() {
+  document.getElementById('stToday').textContent = fmtH(total(today())) + 'h';
+  document.getElementById('stWeek').textContent = fmtH(weekTotal()) + 'h';
+  document.getElementById('stStreak').textContent = calcStreak();
+  let all = 0;
+  for (const k in records) all += total(k);
+  document.getElementById('stAll').textContent = fmtH(all) + 'h';
+  const ex = parseKey(settings.examDate);
+  const d0 = new Date(); d0.setHours(0, 0, 0, 0);
+  const diff = Math.round((ex - d0) / 86400000);
+  document.getElementById('daysLeft').textContent = diff > 0 ? diff : 0;
+  renderRing();
+}
+
+function openModal(key) {
+  sel = key;
+  const d = parseKey(key);
+  const wd = ['日','一','二','三','四','五','六'][d.getDay()];
+  document.getElementById('modalDate').textContent = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 · 周' + wd;
+  renderModal();
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('overlay').classList.remove('show');
+  const p = document.getElementById('dayPanel');
+  p.style.transform = ''; p.style.transition = '';
+  sel = null;
+  renderCalendar();
+}
+
+function renderModal() {
+  const list = records[sel] || [];
+  const box = document.getElementById('entryList');
+  box.innerHTML = '';
+  if (!list.length) box.innerHTML = '<div class="empty">这一天还没有记录</div>';
+  list.forEach((e, idx) => {
+    const row = document.createElement('div');
+    row.className = 'entry';
+    row.style.animationDelay = Math.min(idx * 0.05, 0.3) + 's';
+    row.innerHTML =
+      '<span class="subjtag">' + esc(e.subject || '学习') + '</span>' +
+      '<span class="eh">' + fmtH(e.hours) + ' 小时</span>' +
+      (e.note ? '<span class="note">' + esc(e.note) + '</span>' : '') +
+      '<button class="del">删除</button>';
+    row.querySelector('.del').onclick = () => {
+      records[sel] = (records[sel] || []).filter(x => x !== e);
+      if (!records[sel].length) delete records[sel];
+      save(); renderModal(); renderCalendar(); renderStats(); renderChart();
+    };
+    box.appendChild(row);
+  });
+  document.getElementById('modalTotal').textContent = fmtH(total(sel));
+}
+
+function addEntry() {
+  const err = document.getElementById('addErr');
+  const h = parseFloat(document.getElementById('hoursInput').value);
+  if (!(h > 0)) { err.textContent = '请输入大于 0 的时长'; err.style.display = 'block'; return; }
+  if (h > 24) { err.textContent = '单次时长不能超过 24 小时'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  const s = document.getElementById('subjInput').value.trim() || '学习';
+  const note = document.getElementById('noteInput').value.trim();
+  (records[sel] = records[sel] || []).push({
+    id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    subject: s, hours: Math.round(h * 100) / 100, note: note
+  });
+  save();
+  document.getElementById('subjInput').value = '';
+  document.getElementById('hoursInput').value = '';
+  document.getElementById('noteInput').value = '';
+  renderModal(); renderCalendar(); renderStats(); renderChart();
+}
+
+document.getElementById('addBtn').onclick = addEntry;
+document.getElementById('hoursInput').addEventListener('keydown', e => { if (e.key === 'Enter') addEntry(); });
+document.getElementById('closeBtn').onclick = closeModal;
+document.getElementById('overlay').onclick = e => { if (e.target.id === 'overlay') closeModal(); };
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('reportOverlay').classList.contains('show')) closeReport();
+  else closeModal();
+});
+document.getElementById('prevBtn').onclick = () => { view.m--; if (view.m < 0) { view.m = 11; view.y--; } renderCalendar(); };
+document.getElementById('nextBtn').onclick = () => { view.m++; if (view.m > 11) { view.m = 0; view.y++; } renderCalendar(); };
+document.getElementById('nowBtn').onclick = () => { const n = new Date(); view = { y: n.getFullYear(), m: n.getMonth() }; renderCalendar(); };
+
+const examInput = document.getElementById('examInput');
+const goalInput = document.getElementById('goalInput');
+examInput.value = settings.examDate;
+goalInput.value = settings.dailyGoal;
+examInput.onchange = () => { if (examInput.value) { settings.examDate = examInput.value; save(); renderStats(); } };
+goalInput.onchange = () => {
+  let g = parseFloat(goalInput.value);
+  if (!(g > 0)) g = 8;
+  settings.dailyGoal = g; goalInput.value = g; save(); renderCalendar(); renderStats();
+};
+
+document.getElementById('exportBtn').onclick = () => {
+  const blob = new Blob([JSON.stringify({ records, settings }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '考研学习记录_' + today() + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+document.getElementById('importBtn').onclick = () => document.getElementById('importInput').click();
+document.getElementById('importInput').onchange = function () {
+  const f = this.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (d && typeof d === 'object' && d.records) {
+        if (confirm('导入将覆盖当前所有数据，确定继续吗？')) {
+          records = d.records || {};
+          if (d.settings) Object.assign(settings, d.settings);
+          save();
+          examInput.value = settings.examDate;
+          goalInput.value = settings.dailyGoal;
+          renderStats(); renderCalendar(); renderChart();
+        }
+      } else alert('文件格式不正确');
+    } catch (e) { alert('文件解析失败'); }
+    this.value = '';
+  };
+  r.readAsText(f);
+};
+document.getElementById('clearBtn').onclick = () => {
+  if (confirm('确定要清空全部学习记录吗？此操作不可恢复！') && confirm('再次确认：真的要清空吗？')) {
+    records = {}; save(); renderStats(); renderCalendar(); renderChart();
+  }
+};
+
+const LS_T = 'ky_timer_v1';
+let timer = { state: 'idle', subject: '', startTs: 0, pausedAcc: 0, dateKey: '' };
+try { Object.assign(timer, JSON.parse(localStorage.getItem(LS_T)) || {}); } catch (e) {}
+function saveTimer() { localStorage.setItem(LS_T, JSON.stringify(timer)); }
+function elapsedMs() {
+  if (timer.state === 'idle') return 0;
+  if (timer.state === 'paused') return timer.pausedAcc;
+  return timer.pausedAcc + (Date.now() - timer.startTs);
+}
+function hms(s) {
+  return Math.floor(s / 3600) + ':' + pad(Math.floor(s % 3600 / 60)) + ':' + pad(s % 60);
+}
+
+const btnStart = document.getElementById('btnStart');
+const btnPause = document.getElementById('btnPause');
+const btnStop = document.getElementById('btnStop');
+const btnDiscard = document.getElementById('btnDiscard');
+const idleRow = document.getElementById('idleRow');
+const runRow = document.getElementById('runRow');
+const chipsBox = document.getElementById('chips');
+let curSubj = '数学';
+chipsBox.querySelectorAll('.chip').forEach(c => {
+  c.onclick = () => {
+    chipsBox.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    curSubj = c.dataset.subj;
+  };
+});
+function chipsLock(b) { chipsBox.querySelectorAll('.chip').forEach(c => c.disabled = b); }
+
+let flashTimer = null;
+function flashStatus(msg) {
+  const f = document.getElementById('flash');
+  f.textContent = msg;
+  f.classList.add('on');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => f.classList.remove('on'), 4000);
+}
+
+let swLastIdle = null;
+function swRender() {
+  const idle = timer.state === 'idle';
+  if (idle !== swLastIdle) {
+    const c = document.querySelector('.ring-center');
+    if (c && swLastIdle !== null) { c.classList.remove('swap'); void c.offsetWidth; c.classList.add('swap'); }
+    swLastIdle = idle;
+  }
+  idleRow.style.display = idle ? 'flex' : 'none';
+  runRow.style.display = idle ? 'none' : 'flex';
+  btnPause.textContent = timer.state === 'paused' ? '继续' : '暂停';
+  chipsLock(!idle);
+  renderRing();
+  const mb = document.getElementById('minibar');
+  mb.classList.toggle('show', !idle);
+  mb.classList.toggle('running', timer.state === 'running');
+  mb.classList.toggle('paused', timer.state === 'paused');
+  document.getElementById('mbSubj').textContent = timer.subject || '学习';
+  document.getElementById('mbTime').textContent = hms(Math.floor(elapsedMs() / 1000));
+  document.getElementById('mbPause').textContent = timer.state === 'paused' ? '继续' : '暂停';
+  document.body.classList.toggle('timer-live', !idle);
+}
+function swTick() {
+  if (timer.state !== 'running') return;
+  const s = hms(Math.floor(elapsedMs() / 1000));
+  document.getElementById('rcMain').textContent = s;
+  document.getElementById('mbTime').textContent = s;
+  const goal = settings.dailyGoal > 0 ? settings.dailyGoal : 8;
+  const shown = total(today()) + elapsedMs() / 3600000;
+  document.getElementById('ringFg').style.strokeDashoffset = (RING_C * (1 - Math.min(shown / goal, 1))).toFixed(1);
+  document.getElementById('rcSub').textContent = '专注中 · ' + fmtH(shown) + '/' + fmtH(goal) + 'h';
+}
+function resetTimer() {
+  timer = { state: 'idle', subject: '', startTs: 0, pausedAcc: 0, dateKey: '' };
+  saveTimer(); swRender();
+}
+function startTimer() {
+  if (timer.state !== 'idle') return;
+  timer = { state: 'running', subject: curSubj, startTs: Date.now(), pausedAcc: 0, dateKey: today() };
+  saveTimer(); swRender();
+}
+function pauseToggle() {
+  if (timer.state === 'running') {
+    timer.pausedAcc += Date.now() - timer.startTs;
+    timer.state = 'paused';
+  } else if (timer.state === 'paused') {
+    timer.startTs = Date.now();
+    timer.state = 'running';
+  }
+  saveTimer(); swRender();
+}
+function finishTimer() {
+  const sec = Math.floor(elapsedMs() / 1000);
+  if (sec < 1) { flashStatus('本次计时不足 1 秒，未记录'); resetTimer(); return; }
+  const hours = Math.max(Math.round(sec / 36 / 100) / 100, 0.01);
+  const key = timer.dateKey || today();
+  (records[key] = records[key] || []).push({
+    id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    subject: timer.subject || '学习', hours: hours, note: ''
+  });
+  save();
+  const subj = timer.subject || '学习';
+  resetTimer();
+  renderStats(); renderCalendar(); renderChart();
+  flashStatus('✔ 已记录 ' + fmtH(hours) + ' 小时「' + subj + '」到 ' + (key === today() ? '今天' : key));
+}
+btnStart.onclick = startTimer;
+btnPause.onclick = pauseToggle;
+btnStop.onclick = finishTimer;
+btnDiscard.onclick = () => { if (confirm('确定放弃本次计时吗？不会记录任何数据。')) resetTimer(); };
+document.getElementById('mbPause').onclick = pauseToggle;
+document.getElementById('mbStop').onclick = finishTimer;
+document.getElementById('mbDiscard').onclick = () => { if (confirm('确定放弃本次计时吗？不会记录任何数据。')) resetTimer(); };
+setInterval(swTick, 250);
+
+let chartRange = '7';
+const chartHintText = {
+  '7': '近 7 天每天的学习时长',
+  '30': '近 30 天每天的学习时长',
+  '12': '近 12 个月每月的学习总量'
+};
+document.querySelectorAll('.segbtn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.segbtn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    chartRange = b.dataset.range;
+    renderChart();
+  };
+});
+function renderChart() {
+  const area = document.getElementById('chartArea');
+  document.getElementById('chartHint').textContent = chartHintText[chartRange];
+  area.innerHTML = '';
+  area.classList.toggle('dense', chartRange === '30');
+  const items = [];
+  const wdN = ['日','一','二','三','四','五','六'];
+  if (chartRange === '7') {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = fmt(d);
+      items.push({ key: key, label: '周' + wdN[d.getDay()], v: total(key), month: false });
+    }
+  } else if (chartRange === '30') {
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = fmt(d);
+      items.push({ key: key, label: (29 - i) % 5 === 0 ? (d.getMonth() + 1) + '/' + d.getDate() : '', v: total(key), month: false });
+    }
+  } else {
+    const n = new Date();
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(n.getFullYear(), n.getMonth() - i, 1);
+      const pre = d.getFullYear() + '-' + pad(d.getMonth() + 1);
+      let v = 0;
+      for (const k in records) if (k.slice(0, 7) === pre) v += total(k);
+      items.push({ key: pre, label: (d.getMonth() + 1) + '月', v: v, month: true, y: d.getFullYear(), m: d.getMonth(), ym: d.getFullYear() + '年' + (d.getMonth() + 1) + '月' });
+    }
+  }
+  const max = Math.max.apply(null, items.map(x => x.v).concat([1]));
+  const sum = items.reduce((s, x) => s + x.v, 0);
+  document.getElementById('chartTotal').textContent = fmtH(sum);
+  items.forEach((it, idx) => {
+    const tip = it.month
+      ? it.ym + ' · ' + (it.v > 0 ? fmtH(it.v) + ' 小时 · 点击在日历中查看' : '无记录')
+      : it.key + ' 周' + wdN[parseKey(it.key).getDay()] + ' · ' + (it.v > 0 ? fmtH(it.v) + ' 小时' : '未学习');
+    const w = document.createElement('div');
+    w.className = 'bar-wrap';
+    const pct = Math.max(it.v / max * 100, 2.5);
+    w.innerHTML =
+      '<div class="bar-zone">' +
+        '<div class="bar-val">' + (it.v > 0 ? fmtH(it.v) + 'h' : '') + '</div>' +
+        '<div class="bar' + (it.v > 0 ? '' : ' zero') + (it.key === today() ? ' bar-today' : '') + '" style="height:0%" title="' + tip + '"></div>' +
+      '</div>' +
+      '<div class="bar-label">' + it.label + '</div>';
+    const bar = w.querySelector('.bar');
+    bar.style.transition = 'height .55s cubic-bezier(.32,.72,0,1) ' + Math.min(idx * 14, 210) + 'ms, filter .15s';
+    bar.onclick = () => {
+      if (it.month) { view = { y: it.y, m: it.m }; renderCalendar(); }
+      else openModal(it.key);
+    };
+    area.appendChild(w);
+    requestAnimationFrame(() => requestAnimationFrame(() => { bar.style.height = pct.toFixed(1) + '%'; }));
+  });
+
+  const keys = [];
+  if (chartRange === '12') {
+    for (const k in records) if (items.some(it => k.slice(0, 7) === it.key)) keys.push(k);
+  } else {
+    items.forEach(it => keys.push(it.key));
+  }
+  const sums = {};
+  keys.forEach(k => (records[k] || []).forEach(e => {
+    const s = String(e.subject || '学习');
+    sums[s] = (sums[s] || 0) + (Number(e.hours) || 0);
+  }));
+  const rows = Object.keys(sums).map(s => ({ name: s, v: sums[s] })).sort((a, b) => b.v - a.v);
+  const tot = rows.reduce((s, x) => s + x.v, 0);
+  document.getElementById('shareRangeLabel').textContent = chartRange === '7' ? '近 7 日' : chartRange === '30' ? '近 30 日' : '近 12 个月';
+  const box = document.getElementById('shareList');
+  box.innerHTML = '';
+  if (!rows.length) { box.innerHTML = '<div class="sempty">所选时段还没有学习记录</div>'; return; }
+  rows.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'srow';
+    row.innerHTML =
+      '<span class="sname">' + esc(r.name) + '</span>' +
+      '<span class="strack"><span class="sfill" style="background:' + subjColor(r.name) + '"></span></span>' +
+      '<span class="sval">' + fmtH(r.v) + 'h · ' + Math.round(r.v / tot * 100) + '%</span>';
+    const fill = row.querySelector('.sfill');
+    box.appendChild(row);
+    requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = Math.max(r.v / tot * 100, 3) + '%'; }));
+  });
+}
+const SUBJ_COLORS = [['政治', '#B97F1F'], ['英语', '#4E7A55'], ['数学', '#C8502F'], ['专业课', '#3E5C76'], ['其他', '#9A8F7F']];
+function subjColor(name) {
+  name = String(name || '');
+  for (const p of SUBJ_COLORS) if (name.indexOf(p[0]) >= 0) return p[1];
+  const extra = ['#7A6A8E', '#4A708B', '#8B6B4A', '#5E7A6E'];
+  return extra[name.length % extra.length];
+}
+
+function weekStart(d) { const x = new Date(d); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; }
+function rangeTotal(a, b) {
+  let s = 0; const d = new Date(a); const end = fmt(b);
+  while (fmt(d) <= end) { s += total(fmt(d)); d.setDate(d.getDate() + 1); }
+  return s;
+}
+function showReport() {
+  const now = new Date();
+  const mon = weekStart(now);
+  const lastMon = new Date(mon); lastMon.setDate(mon.getDate() - 7);
+  const lastSun = new Date(mon); lastSun.setDate(mon.getDate() - 1);
+  const tw = weekTotal();
+  const lw = rangeTotal(lastMon, lastSun);
+  const days = (now.getDay() + 6) % 7 + 1;
+  const avg = tw / days;
+  const wdn = ['日','一','二','三','四','五','六'];
+  let best = { v: -1, k: today() }, met = 0;
+  for (let i = 0; i < days; i++) {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    const k = fmt(d); const v = total(k);
+    if (v > best.v) best = { v: v, k: k };
+    if (v >= settings.dailyGoal) met++;
+  }
+  const diff = tw - lw;
+  const diffTxt = diff > 0.05 ? '+' + fmtH(diff) + 'h' : diff < -0.05 ? '-' + fmtH(-diff) + 'h' : '持平';
+  const diffCol = diff > 0.05 ? 'var(--ok)' : diff < -0.05 ? 'var(--accent)' : 'var(--muted)';
+  const bd = parseKey(best.k);
+  const dl = Math.max(0, Math.round((parseKey(settings.examDate) - new Date().setHours(0, 0, 0, 0)) / 86400000));
+  document.getElementById('reportTitle').textContent = '学习报告 · ' + (mon.getMonth() + 1) + '.' + mon.getDate() + ' - ' + (now.getMonth() + 1) + '.' + now.getDate();
+  document.getElementById('reportBody').innerHTML =
+    '<div class="rep-grid">' +
+    '<div class="rep-item"><b style="color:var(--ink)">' + fmtH(tw) + 'h</b><span>本周总时长</span></div>' +
+    '<div class="rep-item"><b style="color:var(--ink)">' + fmtH(avg) + 'h</b><span>日均时长</span></div>' +
+    '<div class="rep-item"><b style="color:var(--accent-deep)">' + (best.v > 0 ? fmtH(best.v) + 'h' : '—') + '</b><span>最佳 · ' + (bd.getMonth() + 1) + '月' + bd.getDate() + '日 周' + wdn[bd.getDay()] + '</span></div>' +
+    '<div class="rep-item"><b style="color:' + diffCol + '">' + diffTxt + '</b><span>比上一整周</span></div>' +
+    '<div class="rep-item"><b style="color:var(--ink)">' + met + ' 天</b><span>达成目标 ' + fmtH(settings.dailyGoal) + 'h</span></div>' +
+    '<div class="rep-item"><b style="color:var(--accent-deep)">' + dl + ' 天</b><span>距初试</span></div>' +
+    '</div>' +
+    '<div class="rep-note">' + (diff > 0.05 ? '这周比上周又进一步，继续保持' : diff < -0.05 ? '比上周少了一些，稳住节奏就好' : '与上周持平，节奏稳定') + '</div>';
+  document.getElementById('reportOverlay').classList.add('show');
+}
+function closeReport() {
+  document.getElementById('reportOverlay').classList.remove('show');
+  const p = document.getElementById('reportPanel');
+  p.style.transform = ''; p.style.transition = '';
+}
+document.getElementById('reportBtn').onclick = showReport;
+document.getElementById('reportClose').onclick = closeReport;
+document.getElementById('reportOverlay').onclick = e => { if (e.target.id === 'reportOverlay') closeReport(); };
+
+function enableSheetSwipe(panel, closeFn) {
+  let y0 = null, dy = 0;
+  panel.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; dy = 0; }, { passive: true });
+  panel.addEventListener('touchmove', e => {
+    if (y0 === null) return;
+    const d = e.touches[0].clientY - y0;
+    if (d > 0 && panel.scrollTop <= 0) { dy = d; panel.style.transition = 'none'; panel.style.transform = 'translateY(' + dy + 'px)'; }
+  }, { passive: true });
+  panel.addEventListener('touchend', () => {
+    if (dy > 90) closeFn();
+    else if (dy > 0) { panel.style.transition = 'transform .25s'; panel.style.transform = ''; }
+    y0 = null; dy = 0;
+  });
+}
+enableSheetSwipe(document.getElementById('dayPanel'), closeModal);
+enableSheetSwipe(document.getElementById('reportPanel'), closeReport);
+
+(function autoReport() {
+  const now = new Date();
+  if (now.getDay() !== 0 || weekTotal() <= 0) return;
+  const mon = weekStart(now);
+  if (localStorage.getItem('ky_report_week') !== fmt(mon)) {
+    localStorage.setItem('ky_report_week', fmt(mon));
+    showReport();
+  }
+})();
+
+const QUOTES = [
+  '稳住，我们能赢', '今天也是靠近梦想的一天', '日拱一卒，功不唐捐', '星光不问赶路人',
+  '你只管努力，剩下的交给时间', '乾坤未定，你我皆是黑马', '慢慢来，比较快', '每一分钟都算数',
+  '岸上见', '现在背的每一页，考场上都会还给你', '请再安静地努力一下', '所有的一鸣惊人，都是厚积薄发',
+  '累了就休息，但别停下', '祝你笔下有神，胸中有丘壑', '今年的卷子会偏爱认真的你', '心之所向，素履以往',
+  '山高路远，来日方长', '你在书桌前坐住的样子，很酷', '专注此刻，未来自有答案', '合上笔盖的刹那，愿你有侠客收剑的骄傲',
+  '少年辛苦终身事，莫向光阴惰寸功', '长风破浪会有时', '今天也要像样地度过', '一点一滴的积累，都暗中标好了去向',
+  '保持热爱，奔赴山海', '错题本越厚，考卷上的坑越少', '别慌，月亮也正在大海某处迷茫', '再坚持一下，就一下',
+  '愿你的努力配得上你的野心', '追风赶月莫停留', '平芜尽处是春山', '学进去的每一分钟都不会背叛你',
+  '做题的尽头是上岸', '今天的你，比昨天更接近上岸', '撑住，会有收获的', '把焦虑写进错题本，把安心留给明天',
+  '与其临渊羡鱼，不如退而结网', '一天背不完全书，但可以背一页', '你走到今天已经很勇敢了', '天亮之前，允许自己慢一点',
+  '考场见真章，平日见功夫', '认真的人运气不会太差', '你所学的，终会以某种方式回到你身上', '今日事，今日毕',
+  '慢慢走，别停下', '万事开头难，你已经开了头', '愿你笔下生风，眼里有光', '有志者，事竟成'
+];
+const GRADES = ['上吉', '大吉', '中吉'];
+function cnNum(n) {
+  const d = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  if (n < 10) return d[n];
+  if (n === 10) return '十';
+  const t = Math.floor(n / 10), o = n % 10;
+  return (t > 1 ? d[t] : '') + '十' + d[o];
+}
+function drawSlip(anim) {
+  const i = Math.floor(Math.random() * QUOTES.length);
+  document.getElementById('qNo').textContent = '第' + cnNum(i + 1) + '签';
+  document.getElementById('qTxt').textContent = QUOTES[i];
+  document.getElementById('qSeal').textContent = GRADES[Math.floor(Math.random() * GRADES.length)];
+  if (anim) {
+    const s = document.getElementById('qslip');
+    s.classList.remove('draw');
+    void s.offsetWidth;
+    s.classList.add('draw');
+  }
+}
+document.getElementById('qslip').onclick = () => drawSlip(true);
+drawSlip(false);
+
+renderStats();
+renderCalendar();
+renderChart();
+swRender();
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
