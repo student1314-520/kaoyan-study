@@ -437,7 +437,7 @@ body.timer-live .container { padding-bottom: calc(92px + env(safe-area-inset-bot
       <button class="linkbtn" id="exportBtn">导出数据</button>
       <button class="linkbtn" id="importBtn">导入数据</button>
       <button class="linkbtn danger" id="clearBtn">清空全部</button>
-      <input type="file" id="importInput" accept=".json" style="display:none">
+      <input type="file" id="importInput" style="display:none">
     </div>
   </section>
 </div>
@@ -689,10 +689,16 @@ goalInput.onchange = () => {
 };
 
 document.getElementById('exportBtn').onclick = () => {
-  const blob = new Blob([JSON.stringify({ records, settings }, null, 2)], { type: 'application/json' });
+  const json = JSON.stringify({ records, settings }, null, 2);
+  const name = '考研学习记录_' + today() + '.json';
+  const file = new File([json], name, { type: 'application/json' });
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: '考研学习记录备份' }).catch(() => {});
+    return;
+  }
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '考研学习记录_' + today() + '.json';
+  a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
 };
