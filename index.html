@@ -818,7 +818,7 @@ function pauseToggle() {
 function finishTimer() {
   const sec = Math.floor(elapsedMs() / 1000);
   if (sec < 1) { flashStatus('本次计时不足 1 秒，未记录'); resetTimer(); return; }
-  const hours = Math.max(Math.round(sec / 36 / 100) / 100, 0.01);
+  const hours = Math.max(Math.round(sec / 36) / 100, 0.01);
   const key = timer.dateKey || today();
   (records[key] = records[key] || []).push({
     id: Date.now() + '_' + Math.random().toString(36).slice(2, 7),
