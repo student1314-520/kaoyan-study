@@ -32,7 +32,7 @@
   --spring: cubic-bezier(.34,1.3,.4,1);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-button, .chip, .cell.day, .segbtn, .linkbtn, .entry .del {
+button, .chip, .cell.day, .segbtn, .entry .del {
   -webkit-user-select: none; user-select: none;
 }
 html { scroll-behavior: smooth; touch-action: manipulation; }
@@ -145,7 +145,6 @@ header h1 { font-family: var(--serif); font-size: 24px; font-weight: 700; letter
 .btn-text:hover { color: var(--accent); }
 .chip:active { transform: scale(.92); }
 .segbtn:active { transform: scale(.94); }
-.linkbtn:active { transform: scale(.96); }
 #idleRow, #runRow { animation: rise .4s var(--ease); }
 .entry { animation: rise .45s var(--ease) backwards; }
 .ring-center.swap { animation: centerswap .45s var(--ease); }
@@ -214,6 +213,8 @@ button.nav.wide { width: auto; padding: 0 12px; font-size: 12px; letter-spacing:
 .segbtn.active { background: var(--paper); color: var(--ink); font-weight: 600; box-shadow: 0 2px 8px rgba(140,105,60,.15); }
 .chart { display: flex; align-items: flex-end; gap: 5px; padding-top: 14px; }
 .chart.dense { gap: 3px; }
+.chart.dense .bar-val { display: none; }
+.chart.dense .bar { max-height: 100%; }
 .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
 .bar-zone { width: 100%; height: 150px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
 .bar-val { font-size: 9px; color: var(--ink-2); font-weight: 600; margin-bottom: 3px; height: 12px; font-variant-numeric: tabular-nums; }
@@ -225,7 +226,7 @@ button.nav.wide { width: auto; padding: 0 12px; font-size: 12px; letter-spacing:
 .bar:hover { filter: brightness(1.08); }
 .bar.zero { background: rgba(42,37,32,.07); }
 .bar.bar-today { box-shadow: 0 0 0 2px var(--accent-soft); }
-.bar-label { margin-top: 6px; font-size: 9px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bar-label { margin-top: 6px; height: 11px; line-height: 11px; font-size: 9px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .chart-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
 .chart-total { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
 .chart-total b { font-family: var(--serif); font-size: 17px; color: var(--ink); }
@@ -251,14 +252,6 @@ button.nav.wide { width: auto; padding: 0 12px; font-size: 12px; letter-spacing:
 .set-item input:focus { border-color: var(--accent); outline: none; }
 .goal-wrap { display: flex; align-items: center; gap: 8px; }
 .goal-wrap span { font-size: 12px; color: var(--muted); flex: none; }
-.token-row { display: flex; gap: 8px; }
-.token-row input {
-  flex: 1; min-width: 0; font-family: var(--sans); font-size: 13px; color: var(--ink);
-  background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px;
-}
-.token-row input:focus { border-color: var(--accent); outline: none; }
-.token-row .linkbtn { flex: none; padding: 10px 16px; border-radius: 12px; }
-.cloud-state { font-size: 11px; color: var(--muted); margin-top: 8px; letter-spacing: .03em; }
 .wide-btn {
   width: 100%; text-align: center; background: var(--accent-soft); color: var(--accent-deep);
   border: none; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 600;
@@ -459,20 +452,9 @@ body.timer-live .container { padding-bottom: calc(92px + env(safe-area-inset-bot
         <div class="goal-wrap"><input type="number" id="goalInput" min="1" max="24" step="0.5"><span>小时</span></div>
       </div>
     </div>
-    <p class="group-label">云备份</p>
-    <div class="set-item">
-      <label for="cloudToken">GitHub 密钥（仅存本机）</label>
-      <div class="token-row">
-        <input type="password" id="cloudToken" placeholder="粘贴 ghp_ 开头 Token">
-        <button class="linkbtn" id="cloudSave">保存</button>
-      </div>
-      <p class="cloud-state" id="cloudStatus">未配置</p>
-    </div>
     <p class="group-label">数据</p>
     <button class="wide-btn" id="reportBtn">查看本周学习报告</button>
     <div class="data-grid">
-      <button class="data-btn" id="cloudPush">立即备份</button>
-      <button class="data-btn" id="cloudPull">从云端恢复</button>
       <button class="data-btn" id="exportBtn">导出数据</button>
       <button class="data-btn" id="importBtn">导入数据</button>
     </div>
@@ -532,12 +514,13 @@ let records = {}, settings = { examDate: '2027-12-25', dailyGoal: 8 };
 try { records = JSON.parse(localStorage.getItem(LS_R)) || {}; } catch (e) {}
 try { Object.assign(settings, JSON.parse(localStorage.getItem(LS_S)) || {}); } catch (e) {}
 if (settings.examDate === '2026-12-26') settings.examDate = '2027-12-25';
+// 云备份功能已移除，清掉历史遗留的 GitHub 凭据
+try { localStorage.removeItem('ky_cloud'); } catch (e) {}
 
 function save() {
   settings.updatedAt = Date.now();
   localStorage.setItem(LS_R, JSON.stringify(records));
   localStorage.setItem(LS_S, JSON.stringify(settings));
-  schedulePush();
 }
 function pad(n) { return String(n).padStart(2, '0'); }
 function fmt(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
@@ -1067,93 +1050,6 @@ enableSheetSwipe(document.getElementById('reportPanel'), closeReport);
     localStorage.setItem('ky_report_week', fmt(mon));
     showReport();
   }
-})();
-
-const CLOUD_API = 'https://api.github.com';
-let cloudLS = { token: '', gistId: '' };
-try { Object.assign(cloudLS, JSON.parse(localStorage.getItem('ky_cloud')) || {}); } catch (e) {}
-function saveCloud() { localStorage.setItem('ky_cloud', JSON.stringify(cloudLS)); }
-function cloudStatus(msg) {
-  const el = document.getElementById('cloudStatus');
-  el.textContent = msg;
-  el.style.color = msg.indexOf('已备份') >= 0 || msg.indexOf('有效') >= 0 || msg.indexOf('已从云端恢复') >= 0 ? 'var(--ok)'
-    : msg.indexOf('无效') >= 0 || msg.indexOf('失败') >= 0 || msg.indexOf('错误') >= 0 ? '#B03024'
-    : 'var(--muted)';
-}
-function cloudJSON() { return JSON.stringify({ app: 'kaoyan', updatedAt: Date.now(), records: records, settings: settings }); }
-let cloudTimer = null;
-function schedulePush() {
-  if (!cloudLS.token) return;
-  clearTimeout(cloudTimer);
-  cloudTimer = setTimeout(cloudPush, 2500);
-}
-async function cloudPush() {
-  if (!cloudLS.token) return;
-  cloudStatus('备份中…');
-  try {
-    const body = { description: 'kaoyan-study backup', files: { 'kaoyan-records.json': { content: cloudJSON() } } };
-    const res = await fetch(CLOUD_API + '/gists' + (cloudLS.gistId ? '/' + cloudLS.gistId : ''), {
-      method: cloudLS.gistId ? 'PATCH' : 'POST',
-      headers: { 'Authorization': 'Bearer ' + cloudLS.token, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (res.status === 401 || res.status === 403) { cloudStatus('密钥无效或没有 gist 权限'); return; }
-    if (!res.ok) { cloudStatus('备份失败 (' + res.status + ')'); return; }
-    const d = await res.json();
-    if (d && d.id && !cloudLS.gistId) { cloudLS.gistId = d.id; saveCloud(); }
-    cloudStatus('已备份 ' + new Date().toLocaleTimeString('zh-CN', { hour12: false }));
-  } catch (e) { cloudStatus('网络错误，未备份'); }
-}
-async function cloudPull() {
-  if (!cloudLS.token || !cloudLS.gistId) { cloudStatus('未配置或暂无云端备份'); return; }
-  cloudStatus('检查云端…');
-  try {
-    const res = await fetch(CLOUD_API + '/gists/' + cloudLS.gistId, { headers: { 'Authorization': 'Bearer ' + cloudLS.token, 'Accept': 'application/vnd.github+json' } });
-    if (res.status === 404) { cloudLS.gistId = ''; saveCloud(); cloudStatus('云端备份不存在，下次备份将重建'); return; }
-    if (!res.ok) { cloudStatus('检查失败 (' + res.status + ')'); return; }
-    const d = await res.json();
-    const f = d.files && d.files['kaoyan-records.json'];
-    if (!f || !f.content) { cloudStatus('云端暂无数据'); return; }
-    const parsed = JSON.parse(f.content);
-    const cloudAt = parsed.updatedAt || 0;
-    const localAt = settings.updatedAt || 0;
-    if (cloudAt <= localAt) { cloudStatus('云端已是最新'); return; }
-    if (confirm('检测到云端备份比本机新（可能是另一台设备的记录）。\n从云端恢复会覆盖本机当前数据，确定吗？')) {
-      records = parsed.records || {};
-      Object.assign(settings, parsed.settings || {});
-      save();
-      examInput.value = settings.examDate;
-      goalInput.value = settings.dailyGoal;
-      renderStats(); renderCalendar(); renderChart();
-      cloudStatus('已从云端恢复');
-    } else {
-      cloudStatus('已跳过恢复');
-    }
-  } catch (e) { cloudStatus('网络错误'); }
-}
-document.getElementById('cloudSave').onclick = async () => {
-  const t = document.getElementById('cloudToken').value.trim();
-  if (!t) { cloudLS.token = ''; cloudLS.gistId = ''; saveCloud(); cloudStatus('已清除密钥，回到纯本地模式'); return; }
-  cloudStatus('验证密钥…');
-  try {
-    const r = await fetch(CLOUD_API + '/user', { headers: { 'Authorization': 'Bearer ' + t, 'Accept': 'application/vnd.github+json' } });
-    if (r.ok) {
-      cloudLS.token = t;
-      saveCloud();
-      cloudStatus('密钥有效，已开启自动备份');
-      schedulePush();
-    } else {
-      cloudStatus('密钥无效或未勾选 gist 权限 (' + r.status + ')');
-    }
-  } catch (e) { cloudStatus('网络错误，稍后再试'); }
-};
-document.getElementById('cloudPush').onclick = () => { clearTimeout(cloudTimer); cloudPush(); };
-document.getElementById('cloudPull').onclick = cloudPull;
-(async function initCloud() {
-  if (!cloudLS.token) return;
-  document.getElementById('cloudToken').value = cloudLS.token;
-  await cloudPull();
-  schedulePush();
 })();
 
 const QUOTES = [
